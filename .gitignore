@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+backend/venv/
+backend/__pycache__/
+
+# Build output
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+frontend/.env
+backend/.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Python
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Model artifacts (optional - large files)
+# backend/artifacts/*.pkl
+
+# Misc
+.pytest_cache/
+.coverage
+htmlcov/
+.vercel
