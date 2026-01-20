@@ -1,7 +1,6 @@
 # Dependencies
 node_modules/
-backend/venv/
-backend/__pycache__/
+frontend/node_modules/
 
 # Build output
 frontend/.next/
@@ -13,6 +12,7 @@ frontend/build/
 .env.local
 .env.*.local
 frontend/.env
+frontend/.env.local
 backend/.env
 
 # IDE
@@ -20,7 +20,6 @@ backend/.env
 .vscode/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
@@ -31,20 +30,9 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 
-# Python
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-.eggs/
-*.egg
-
-# Model artifacts (optional - large files)
-# backend/artifacts/*.pkl
+# Model artifacts (large files - download at runtime)
+backend/artifacts/*.pkl
 
 # Misc
-.pytest_cache/
-.coverage
-htmlcov/
 .vercel
+*.tsbuildinfo
