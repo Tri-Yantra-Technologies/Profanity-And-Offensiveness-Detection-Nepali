@@ -1,68 +1,8 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/ICON%202024-Published-brightgreen?style=for-the-badge&logo=read-the-docs" alt="ICON 2024 Published">
-  <img src="https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js" alt="Next.js 16">
-  <img src="https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi" alt="FastAPI">
-  <img src="https://img.shields.io/badge/License-MIT-purple?style=for-the-badge" alt="MIT License">
-</p>
+# NepSense - Profanity & Offensiveness Detection for Nepali Language 🇳🇵🛡️
 
-<h1 align="center">🛡️ NepSense</h1>
-
-<h3 align="center">
-  <em>Profanity & Offensiveness Detection for Nepali Language</em>
-</h3>
-
-<p align="center">
-  A full-stack, production-ready web application for detecting <strong>profanity</strong>, <strong>offensiveness</strong>, and <strong>gender</strong> in Nepali text using state-of-the-art Bi-directional LSTM models.
-</p>
-
-<p align="center">
-  <a href="https://aclanthology.org/2024.icon-1.60"><strong>📄 Read the Paper</strong></a> ·
-  <a href="#-live-demo"><strong>🚀 Try the Demo</strong></a> ·
-  <a href="#-getting-started"><strong>🏁 Get Started</strong></a> ·
-  <a href="#-api-reference"><strong>📚 API Docs</strong></a>
-</p>
-
----
-
-## ✨ Highlights
-
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <h3>🎯 95%+</h3>
-      <p>Detection Accuracy</p>
-    </td>
-    <td align="center" width="33%">
-      <h3>⚡ &lt;50ms</h3>
-      <p>Inference Speed</p>
-    </td>
-    <td align="center" width="33%">
-      <h3>🆓 Free</h3>
-      <p>Forever</p>
-    </td>
-  </tr>
-</table>
-
----
-
-## 🧠 What is NepSense?
-
-**NepSense** is an NLP-powered tool that analyzes Nepali text to detect harmful content. It's based on peer-reviewed research published at **ICON 2024** (21st International Conference on Natural Language Processing).
-
-### Key Capabilities
-
-| Feature | Description |
-|---------|-------------|
-| **🛡️ Triple Detection** | Simultaneously detect profanity, offensiveness, and speaker gender |
-| **🔤 Hybrid Input** | Works with both Devanagari (नेपाली) and Romanized (Nepali) text |
-| **🧬 Bi-LSTM Architecture** | Deep learning models that capture contextual meaning, not just keywords |
-| **🌐 Transliteration** | Automatic conversion of Romanized text to Devanagari using AI4Bharat |
-| **🚀 Production Ready** | FastAPI backend with rate limiting, caching, and containerized deployment |
-
----
-
-## � Screenshots
+[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-ICON%202024%20Published-brightgreen.svg)](https://aclanthology.org/2024.icon-1.60)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali)
 
 <p align="center">
   <img src="image.png" alt="NepSense Demo Interface" width="100%">
@@ -70,131 +10,241 @@
 
 ---
 
-## 🏗️ Architecture
+## 📄 Abstract
+
+**NepSense** is a pioneering NLP tool designed to detect **profanity**, **offensiveness**, and **speaker gender** in Nepali text. By synthesizing advanced Deep Learning with Nepali linguistic context, NepSense bridges the critical gap between users seeking safe online spaces and platforms needing content moderation.
+
+Offensive and profane content has been on the rise in Nepali Social Media, which is very disturbing to users. This is partly due to the absence of proper tools and mechanisms for the Nepali language to deal with profanity and offensive texts. In this work, we develop a **Bi-LSTM (Bidirectional Long Short Term Memory)** based model for the classification of Profane and Offensive comments.
+
+Leveraging **Multilingual BERT embeddings** and custom vocabulary embeddings, NepSense captures contextual meaning beyond simple keyword matching. While previous related studies in the Nepali language are more focused on sentiment and offensiveness detection only, our study explores **profanity and offensiveness detection as two distinct tasks**.
+
+> 📖 Based on peer-reviewed research published at **ICON 2024** (21st International Conference on Natural Language Processing)
+> 
+> 📄 **[Read the Full Paper on ACL Anthology →](https://aclanthology.org/2024.icon-1.60)**
+
+---
+
+## 🚀 Key Features
+
+### 1. 🛡️ Triple Detection System
+- **Profanity Detection**: Identifies vulgar, obscene, and swear words in Nepali text.
+- **Offensiveness Detection**: Detects disrespectful, insulting, or harmful content.
+- **Gender Identification**: Predicts the gender of the speaker based on text patterns.
+
+### 2. 🔤 Hybrid Input Support
+- **Devanagari Script**: Native Nepali text (नेपाली)
+- **Romanized Nepali**: Latin script transliteration (Nepali → automatically converted)
+- **Automatic Transliteration**: AI4Bharat XlitEngine converts Romanized input to Devanagari
+
+### 3. 🧬 State-of-the-Art Architecture
+- **Bi-LSTM Models**: Capture bidirectional context for accurate classification
+- **BERT Embeddings**: Multilingual BERT (`bert-base-multilingual-cased`) for semantic understanding
+- **Multi-Output Model**: Single model predicting both profanity levels and speaker gender
+
+### 4. ⚡ Production-Ready API
+- **FastAPI Backend**: High-performance async API with automatic docs
+- **Rate Limiting**: Prevent abuse with configurable request limits
+- **Feedback Loop**: Users can submit corrections to improve models
+
+### 5. 🎨 Premium Web Interface
+- **Three.js Animations**: Immersive 3D background effects
+- **Glassmorphism Design**: Modern, elegant UI with blur effects
+- **Framer Motion**: Smooth micro-animations and transitions
+
+---
+
+## 🛠 Technology Stack
+
+### Frontend (Client-Side)
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 16 (App Router) |
+| **Language** | TypeScript (Strict type safety) |
+| **UI Library** | React 19 |
+| **Styling** | TailwindCSS v4 |
+| **Animations** | Framer Motion, Three.js |
+| **Icons** | Lucide React |
+| **HTTP Client** | Axios |
+
+### Backend (Server-Side)
+| Category | Technology |
+|----------|------------|
+| **Framework** | FastAPI (Python 3.9+) |
+| **Server** | Uvicorn (ASGI) |
+| **Validation** | Pydantic v2 |
+| **Serialization** | Joblib |
+
+### Artificial Intelligence & ML
+| Category | Technology |
+|----------|------------|
+| **Deep Learning** | TensorFlow/Keras |
+| **Transformers** | PyTorch + HuggingFace Transformers |
+| **BERT Model** | `bert-base-multilingual-cased` |
+| **Transliteration** | AI4Bharat XlitEngine |
+| **Language Detection** | langdetect |
+| **Data Processing** | NumPy, scikit-learn |
+
+---
+
+## 📂 Project Structure
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Frontend (Next.js 16)                     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │   Landing   │  │    Demo     │  │   Authors   │              │
-│  │    Page     │  │    Page     │  │    Page     │              │
-│  └─────────────┘  └─────────────┘  └─────────────┘              │
-│                                                                  │
-│  • React 19 • Framer Motion • Three.js • TailwindCSS v4         │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ REST API
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       Backend (FastAPI)                          │
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                    Model Manager                         │    │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │    │
-│  │  │ Bi-LSTM      │  │ Bi-LSTM      │  │ Multilabel   │   │    │
-│  │  │ Profane      │  │ Offensive    │  │ LSTM         │   │    │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘   │    │
-│  │  ┌──────────────────────────────────────────────────┐   │    │
-│  │  │        Multi-Output BERT (Gender + Prof.)        │   │    │
-│  │  └──────────────────────────────────────────────────┘   │    │
-│  └─────────────────────────────────────────────────────────┘    │
-│                                                                  │
-│  • TensorFlow/Keras • PyTorch/Transformers • AI4Bharat Xlit     │
-└─────────────────────────────────────────────────────────────────┘
+Profanity-And-Offensiveness-Detection-Nepali/
+├── backend/                    # Python FastAPI Application
+│   ├── app/                    # Core Application
+│   │   ├── core/               # Configuration & Settings
+│   │   ├── main.py             # FastAPI App & Routes
+│   │   ├── models.py           # Model Manager & Inference
+│   │   ├── schemas.py          # Pydantic Models
+│   │   └── rate_limit.py       # Rate Limiting Logic
+│   ├── pkl/                    # Trained Models & Tokenizers
+│   │   ├── Binomial_LSTM_Profane.h5
+│   │   ├── Binomial_LSTM_Offensive.keras
+│   │   ├── Mutlilabel_LSTM_Offensive_Profane.h5
+│   │   └── Multi_Model_Multi_Output.h5
+│   ├── run_backend.py          # Server Entry Point
+│   ├── requirements.txt        # Python Dependencies
+│   └── Dockerfile              # Container Configuration
+├── frontend/                   # Next.js TypeScript Application
+│   ├── src/
+│   │   ├── app/                # App Router Pages
+│   │   │   ├── page.tsx        # Landing Page
+│   │   │   ├── demo/           # Demo Interface
+│   │   │   ├── examples/       # Example Texts
+│   │   │   └── authors/        # Research Team
+│   │   ├── components/         # Reusable UI Components
+│   │   │   ├── navbar.tsx
+│   │   │   ├── three-background.tsx
+│   │   │   └── ui/             # Design System
+│   │   └── lib/                # Utilities
+│   ├── package.json            # Node Dependencies
+│   └── next.config.ts          # Next.js Configuration
+├── image.png                   # Demo Screenshot
+└── README.md                   # You are here
 ```
 
 ---
 
-## 🚀 Live Demo
+## 🧠 Model Information
 
-> **Free to use, no sign-up required!**
+### Available Models
 
-👉 **[Try NepSense Now](YOUR_DEPLOYED_URL)**
+| Model | File | Size | Accuracy | Description |
+|-------|------|------|----------|-------------|
+| **Profane Binary** | `Binomial_LSTM_Profane.h5` | 22 MB | 87.8% | Binary: Profane vs Non-Profane |
+| **Offensive Binary** | `Binomial_LSTM_Offensive.keras` | 8 MB | 85%+ | Binary: Offensive vs Non-Offensive |
+| **Multilabel** | `Mutlilabel_LSTM_Offensive_Profane.h5` | 42 MB | 83%+ | 3-Class: Clean/Offensive/Profane |
+| **Multi-Output** | `Multi_Model_Multi_Output.h5` | 96 MB | - | Gender + Profanity combined |
+
+### Technical Specifications
+
+- **Max Sequence Length**: 500 tokens
+- **Padding Strategy**: Post-padding
+- **Tokenizers**: Keras Tokenizer (saved as `.pkl`)
+- **BERT Model**: `bert-base-multilingual-cased` (768-dim embeddings)
+- **N-gram Size**: 2 (bigrams for BERT embeddings)
 
 ---
 
-## 🏁 Getting Started
+## ⚡ Quick Start Guide
 
 ### Prerequisites
 
 | Requirement | Version |
 |-------------|---------|
-| Python | 3.9+ |
-| Node.js | 18+ (LTS) |
-| Git | Latest |
+| **Node.js** | v18+ (LTS recommended) |
+| **Python** | v3.9+ |
+| **Git** | Latest |
 
-### 📥 Installation
-
-#### 1. Clone the Repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali.git
 cd Profanity-And-Offensiveness-Detection-Nepali
 ```
 
-#### 2. Backend Setup
-
-The backend serves the AI models via a REST API.
+### 2. Backend Setup
 
 ```bash
 cd backend
 
-# Create and activate virtual environment
+# Create Virtual Environment
 python -m venv venv
 
+# Activate Virtual Environment
 # Windows:
 .\venv\Scripts\activate
-# Linux/Mac:
+# Mac/Linux:
 source venv/bin/activate
 
-# Install dependencies
+# Install Dependencies
 pip install -r requirements.txt
 
-# Start the server
+# Run Server
 python run_backend.py
 ```
 
 ✅ **Backend running at:** `http://localhost:8000`
 
-#### 3. Frontend Setup
+📚 **API Docs:** `http://localhost:8000/api/docs`
+
+### 3. Frontend Setup
 
 ```bash
-# Open a new terminal
+# Open new terminal
 cd frontend
 
-# Install dependencies
+# Install Dependencies
 npm install
 
-# Start development server
+# Run Development Server
 npm run dev
 ```
 
 ✅ **Frontend running at:** `http://localhost:3000`
 
+### 4. Environment Variables
+
+Create `.env` files:
+
+**Backend (`backend/.env`):**
+```env
+FRONTEND_ORIGIN=http://localhost:3000
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=60
+```
+
+**Frontend (`frontend/.env`):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
 ---
 
 ## 📚 API Reference
 
-Once the backend is running, interactive API docs are available at:
-
-| Documentation | URL |
-|--------------|-----|
-| **Swagger UI** | `http://localhost:8000/api/docs` |
-| **ReDoc** | `http://localhost:8000/api/redoc` |
-
 ### Core Endpoints
 
-#### `POST /predict` — Analyze Text
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/predict` | Analyze text for profanity/offensiveness |
+| `POST` | `/predict/gender` | Predict speaker gender |
+| `POST` | `/analyze` | Run all models simultaneously |
+| `GET` | `/health` | Health check |
+| `GET` | `/models` | List available models |
+| `GET` | `/meta` | API metadata |
+| `POST` | `/feedback` | Submit correction feedback |
 
-Detect profanity and offensiveness in Nepali text.
+### Example Request
 
-**Request:**
-```json
-{
-  "text": "तिमीलाई यो कुरा थाहा छ?",
-  "model_type": "profane_binary"
-}
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "तिमीलाई यो कुरा थाहा छ?", "model_type": "profane_binary"}'
 ```
 
-**Response:**
+### Example Response
+
 ```json
 {
   "profanity": {
@@ -210,93 +260,20 @@ Detect profanity and offensiveness in Nepali text.
 }
 ```
 
-#### Available Model Types
-
-| Model Type | Description | Best For |
-|------------|-------------|----------|
-| `profane_binary` | Binary profanity detection | Detecting swear words and vulgar language |
-| `offensive_binary` | Binary offensiveness detection | Detecting disrespectful or insulting content |
-| `multilabel` | 3-class classification | Combined analysis (Clean/Offensive/Profane) |
-| `multi_output` | BERT-based with gender prediction | Advanced analysis with speaker identification |
-
-#### Other Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check for load balancers |
-| `GET` | `/models` | List available models |
-| `GET` | `/meta` | API metadata and rate limits |
-| `POST` | `/analyze` | Run all models simultaneously |
-| `POST` | `/predict/gender` | Gender prediction only |
-| `POST` | `/feedback` | Submit correction feedback |
-
----
-
-## 🧠 Model Information
-
-### Available Models
-
-All models are located in `backend/pkl/` and are loaded automatically on startup.
-
-| File | Size | Description |
-|------|------|-------------|
-| `Binomial_LSTM_Profane.h5` | 22 MB | Binary profanity classifier |
-| `Binomial_LSTM_Offensive.keras` | 8 MB | Binary offensiveness classifier |
-| `Mutlilabel_LSTM_Offensive_Profane.h5` | 42 MB | 3-class combined classifier |
-| `Multi_Model_Multi_Output.h5` | 96 MB | BERT-based gender + profanity |
-
-### Technical Details
-
-- **Tokenization:** Custom Keras tokenizers saved as `.pkl` files
-- **Max Sequence Length:** 500 tokens
-- **Padding:** Post-padding
-- **BERT Model:** `bert-base-multilingual-cased` for Multi-Output
-- **Transliteration:** AI4Bharat XlitEngine (Romanized → Devanagari)
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-| Technology | Purpose |
-|------------|---------|
-| **Next.js 16** | React framework with App Router |
-| **React 19** | UI library |
-| **TailwindCSS v4** | Utility-first styling |
-| **Framer Motion** | Animations |
-| **Three.js** | 3D background effects |
-| **Lucide React** | Icons |
-
-### Backend
-| Technology | Purpose |
-|------------|---------|
-| **FastAPI** | High-performance API framework |
-| **TensorFlow/Keras** | Deep learning inference |
-| **PyTorch/Transformers** | BERT embeddings |
-| **AI4Bharat** | Nepali transliteration |
-| **Joblib** | Model serialization |
-| **Uvicorn** | ASGI server |
-
 ---
 
 ## 📄 Research Paper
-
-This project is the implementation of our research published at **ICON 2024**:
 
 > **Profanity and Offensiveness Detection in Nepali Language Using Bi-directional LSTM Models**
 >
 > *Abiral Adhikari, Prashant Manandhar, Reewaj Khanal, Samir Wagle, Praveen Acharya, Bal Krishna Bal*
 >
-> Proceedings of the 21st International Conference on Natural Language Processing (ICON), December 2024
-> NLP Association of India (NLPAI), Chennai, India
+> Proceedings of the 21st International Conference on Natural Language Processing (ICON)
+> December 2024 • Chennai, India • NLP Association of India (NLPAI)
 
-📖 **[Read the full paper on ACL Anthology](https://aclanthology.org/2024.icon-1.60)**
+📖 **[Read Full Paper →](https://aclanthology.org/2024.icon-1.60)**
 
-### Abstract
-
-> Offensive and profane content has been on the rise in Nepali Social Media, which is very disturbing to users. This is partly due to the absence of proper tools and mechanisms for the Nepali language to deal with profanity and offensive texts. In this work, we attempt to develop a deep learning-based profanity and offensive comments detection tool. We develop a Bi-LSTM (Bidirectional Long Short Term Memory) based model for the classification of Profane and Offensive comments and study different variations of the task. Furthermore, Multilingual BERT embedding and vocab embedding were used among others for an accurate understanding of the intent and decency of the posts. While previous related studies in the Nepali language are more focused on sentiment and offensiveness detection only, our study explores profanity and offensiveness detection as two distinct tasks.
-
-### Citation
+### Citation (BibTeX)
 
 ```bibtex
 @inproceedings{adhikari-etal-2024-profanity,
@@ -315,84 +292,22 @@ This project is the implementation of our research published at **ICON 2024**:
 
 ---
 
-## 👥 Authors
+## 👥 Research Team
 
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://www.researchgate.net/profile/Abiral-Adhikari-4">
-        <strong>Abiral Adhikari</strong>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://manandharprashant.com.np">
-        <strong>Prashant Manandhar</strong>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://reewajkhanal.com.np">
-        <strong>Reewaj Khanal</strong>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://samirwagle.com.np">
-        <strong>Samir Wagle</strong>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://aclanthology.org/people/praveen-acharya/">
-        <strong>Praveen Acharya</strong>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://aclanthology.org/people/bal-krishna-bal/">
-        <strong>Bal Krishna Bal</strong>
-      </a>
-    </td>
-  </tr>
-</table>
-
----
-
-## � Docker Deployment
-
-### Build and Run
-
-```bash
-# Backend
-cd backend
-docker build -t nepsense-backend .
-docker run -p 8000:8000 nepsense-backend
-
-# Frontend (production build)
-cd frontend
-npm run build
-npm start
-```
-
-### Environment Variables
-
-Create `.env` files in both `backend/` and `frontend/` directories:
-
-**Backend (`backend/.env`):**
-```env
-FRONTEND_ORIGIN=http://localhost:3000
-RATE_LIMIT_REQUESTS=100
-RATE_LIMIT_WINDOW=60
-```
-
-**Frontend (`frontend/.env`):**
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+| Name | Profile |
+|------|---------|
+| **Abiral Adhikari** | [ResearchGate](https://www.researchgate.net/profile/Abiral-Adhikari-4) |
+| **Prashant Manandhar** | [Website](https://manandharprashant.com.np) |
+| **Reewaj Khanal** | [Website](https://reewajkhanal.com.np) |
+| **Samir Wagle** | [Website](https://samirwagle.com.np) |
+| **Praveen Acharya** | [ACL Anthology](https://aclanthology.org/people/praveen-acharya/) |
+| **Bal Krishna Bal** | [ACL Anthology](https://aclanthology.org/people/bal-krishna-bal/) |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
+Contributions are welcome! Please follow the standard "Fork-and-Pull" workflow:
 
 1. **Fork** the repository
 2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
@@ -400,42 +315,30 @@ Contributions are welcome! Here's how you can help:
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. **Open** a Pull Request
 
-### Development Guidelines
-
-- Follow existing code style
-- Add tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting
+Ensure you lint your code and test thoroughly before submitting a PR.
 
 ---
 
 ## 📝 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-**Free for:**
-- ✅ Personal use
-- ✅ Academic research
-- ✅ Commercial applications
-- ✅ Modification and distribution
+This project is licensed under the **MIT License** — free for personal, academic, and commercial use.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **[AI4Bharat](https://ai4bharat.org/)** for the Hindi-Nepali transliteration engine
-- **[Hugging Face](https://huggingface.co/)** for BERT model hosting
-- **[NLP Association of India (NLPAI)](https://nlp-ai.org/)** for organizing ICON 2024
-- The research community for advancing NLP in low-resource languages
+- **[AI4Bharat](https://ai4bharat.org/)** — Transliteration engine
+- **[Hugging Face](https://huggingface.co/)** — BERT model hosting
+- **[NLP Association of India](https://nlp-ai.org/)** — ICON 2024 organizers
 
 ---
 
 <p align="center">
-  <strong>Made with ❤️ for the Nepali NLP Community</strong>
+  <strong>Empowering Safer Nepali Digital Spaces 🇳🇵</strong>
 </p>
 
 <p align="center">
-  <a href="https://aclanthology.org/2024.icon-1.60">Paper</a> ·
-  <a href="https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali/issues">Report Bug</a> ·
-  <a href="https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali/issues">Request Feature</a>
+  <a href="https://aclanthology.org/2024.icon-1.60">📄 Paper</a> •
+  <a href="https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali/issues">🐛 Report Bug</a> •
+  <a href="https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali/issues">💡 Request Feature</a>
 </p>
