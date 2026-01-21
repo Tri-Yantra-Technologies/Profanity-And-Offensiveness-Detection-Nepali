@@ -48,7 +48,8 @@ class ModelType(str, Enum):
     PROFANE_BINARY = "profane_binary"  # Binomial LSTM for profanity only
     OFFENSIVE_BINARY = "offensive_binary"  # Binomial LSTM for offensiveness only
     MULTILABEL = "multilabel"  # Multilabel for both profanity and offensiveness
-    MULTI_OUTPUT = "multi_output"  # Multi-Output BERT model (gender + profanity)
+    MULTI_OUTPUT = "multi_output"  # Multi-Output BERT model (profanity/offensiveness)
+    GENDER = "gender"  # Gender Detection model
 
 
 import threading
@@ -126,7 +127,13 @@ class ModelManager:
                 "model_file": "Multi_Model_Multi_Output.h5",
                 "tokenizer_file": "Multi_Model_Multi_Output.pkl",
                 "name": "Multi-Output BERT Model",
-                "description": "Predicts gender and profanity/offensiveness using BERT embeddings"
+                "description": "Predicts profanity/offensiveness using BERT embeddings"
+            },
+            ModelType.GENDER: {
+                "model_file": "Multi_Model_Multi_Output.h5",
+                "tokenizer_file": "Multi_Model_Multi_Output.pkl",
+                "name": "Gender Detection",
+                "description": "Identifies the gender tone of the speaker"
             },
         }
         
@@ -149,6 +156,7 @@ class ModelManager:
             
             # Now load the Keras Multi-Output model since we have BERT
             self._load_single_model(ModelType.MULTI_OUTPUT)
+            self._load_single_model(ModelType.GENDER)
             
             logger.info(f"✓ BERT model loaded on {self.device}")
         except Exception as e:
@@ -302,7 +310,10 @@ class ModelManager:
             return self._predict_multilabel(text, model, tokenizer)
         
         elif model_type == ModelType.MULTI_OUTPUT:
-            return self._predict_multi_output(text, model, tokenizer)
+            return self._predict_multi_output(text, model, tokenizer, include_gender=False)
+        
+        elif model_type == ModelType.GENDER:
+            return self._predict_multi_output(text, model, tokenizer, include_gender=True, only_gender=True)
         
         else:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -385,7 +396,7 @@ class ModelManager:
             }
         }
     
-    def _predict_multi_output(self, text: str, model, tokenizer) -> Dict[str, Dict]:
+    def _predict_multi_output(self, text: str, model, tokenizer, include_gender: bool = True, only_gender: bool = False) -> Dict[str, Dict]:
         """Predict using Multi-Output BERT model (gender + profanity)."""
         # Generate BERT n-gram embeddings
         embeddings = self.get_ngram_embeddings(text, n=2)
@@ -417,25 +428,35 @@ class ModelManager:
         is_profane = profanity_class == 2
         is_offensive = profanity_class == 1
         
-        return {
-            "profanity": {
+        result = {}
+        
+        if not only_gender:
+            result["profanity"] = {
                 "label": "Profane" if is_profane else "Non-Profane",
                 "confidence": round(float(profanity_pred[0][2]) if is_profane else 1 - float(profanity_pred[0][2]), 4)
-            },
-            "offensiveness": {
+            }
+            result["offensiveness"] = {
                 "label": "Offensive" if is_offensive else "Non-Offensive",
                 "confidence": round(float(profanity_pred[0][1]) if is_offensive else 1 - float(profanity_pred[0][1]), 4)
-            },
-            "gender": {
+            }
+        else:
+            # When only gender is requested, profanity/offensiveness are returned as N/A or empty
+            result["profanity"] = {"label": "N/A", "confidence": 0.0}
+            result["offensiveness"] = {"label": "N/A", "confidence": 0.0}
+
+        if include_gender:
+            result["gender"] = {
                 "label": gender,
                 "confidence": round(float(gender_prob) if gender_idx == 1 else 1 - float(gender_prob), 4)
-            },
-            "_raw": {
-                "predicted_class": profanity_class,
-                "label": profanity_label,
-                "confidence": round(profanity_confidence, 4)
             }
+        
+        result["_raw"] = {
+            "predicted_class": profanity_class,
+            "label": profanity_label,
+            "confidence": round(profanity_confidence, 4)
         }
+        
+        return result
 
 
 # Global singleton

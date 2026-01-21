@@ -141,6 +141,21 @@ export const analyzeText = async (text: string): Promise<AnalyzeResponse> => {
     }
 };
 
+export const submitFeedback = async (feedback: {
+    text: string;
+    model_used: string;
+    prediction: any;
+    is_correct: boolean;
+    corrected_label?: string;
+}): Promise<{ status: string }> => {
+    try {
+        const response = await api.post('/feedback', feedback);
+        return response.data;
+    } catch (err) {
+        throw new Error(getErrorMessage(err));
+    }
+};
+
 export const checkHealth = async (): Promise<{ status: string }> => {
     try {
         const response = await api.get('/health');

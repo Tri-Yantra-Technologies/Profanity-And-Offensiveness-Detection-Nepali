@@ -7,8 +7,8 @@ import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { predictText, getModels, PredictionResponse, ModelInfo } from "@/lib/api"
-import { Loader2, Copy, Check, AlertCircle, Sparkles, RotateCcw, ChevronDown, Cpu } from "lucide-react"
+import { predictText, predictGender, getModels, submitFeedback, PredictionResponse, ModelInfo, GenderResponse } from "@/lib/api"
+import { Loader2, Copy, Check, AlertCircle, Sparkles, RotateCcw, ChevronDown, Cpu, ThumbsUp, ThumbsDown, User2 } from "lucide-react"
 
 const ThreeBackground = dynamic(() => import("@/components/three-background"), {
     ssr: false,
@@ -25,9 +25,12 @@ const PRESET_EXAMPLES = [
 export default function DemoPage() {
     const [text, setText] = useState("")
     const [loading, setLoading] = useState(false)
+    const [genderLoading, setGenderLoading] = useState(false)
     const [result, setResult] = useState<PredictionResponse | null>(null)
+    const [genderResult, setGenderResult] = useState<GenderResponse | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
+    const [feedbackSent, setFeedbackSent] = useState(false)
 
     // Model selection state
     const [availableModels, setAvailableModels] = useState<ModelInfo[]>([])
@@ -44,7 +47,6 @@ export default function DemoPage() {
                 setSelectedModel(data.default_model)
             } catch (err) {
                 console.error("Failed to fetch models:", err)
-                // Default fallback
                 setAvailableModels([
                     { type: "multilabel", name: "Multilabel (Profanity & Offensiveness)", description: "Detects both" },
                     { type: "profane_binary", name: "Profanity Only", description: "Detects profanity" }
@@ -61,6 +63,8 @@ export default function DemoPage() {
         setLoading(true)
         setError(null)
         setResult(null)
+        setGenderResult(null)
+        setFeedbackSent(false)
 
         try {
             const data = await predictText(text, selectedModel)
@@ -72,15 +76,55 @@ export default function DemoPage() {
         }
     }
 
+    const handleGenderPredict = async () => {
+        if (!text.trim()) return
+        setGenderLoading(true)
+        setError(null)
+        setResult(null)
+        setGenderResult(null)
+        setFeedbackSent(false)
+
+        try {
+            const data = await predictGender(text)
+            setGenderResult(data)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to get gender prediction")
+        } finally {
+            setGenderLoading(false)
+        }
+    }
+
+    const handleFeedback = async (isCorrect: boolean) => {
+        if (!text || feedbackSent) return
+
+        const feedbackData = {
+            text,
+            model_used: result?.model_used || genderResult?.model_used || "unknown",
+            prediction: result || genderResult,
+            is_correct: isCorrect,
+            timestamp: Date.now() / 1000
+        }
+
+        try {
+            await submitFeedback(feedbackData)
+            setFeedbackSent(true)
+        } catch (err) {
+            console.error("Failed to send feedback:", err)
+        }
+    }
+
     const handleReset = () => {
         setText("")
         setResult(null)
+        setGenderResult(null)
         setError(null)
+        setFeedbackSent(false)
     }
 
     const copyResult = () => {
-        if (!result) return
-        navigator.clipboard.writeText(JSON.stringify(result, null, 2))
+        const dataToCopy = result || genderResult
+        if (!dataToCopy) return
+        navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2))
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
     }
@@ -113,32 +157,31 @@ export default function DemoPage() {
                     {/* Header */}
                     <div className="text-center space-y-4">
                         <Badge className="px-4 py-2 text-sm bg-primary/20 text-primary border-primary/30">
-                            <Sparkles className="w-3 h-3 mr-2" />
-                            Powered by Bi-LSTM • Free Forever
+                            NepSense • ICON 2024
                         </Badge>
                         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-                            Analyze <span className="gradient-text">Nepali Text</span>
+                            Smart <span className="gradient-text">Nepali AI</span> Analysis
                         </h1>
                         <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                            Enter text in Romanized or Devanagari script to check for profanity and offensiveness.
+                            Advanced toxicity detection for Nepali text using state-of-the-art Bi-LSTM and BERT models.
                         </p>
                     </div>
 
                     {/* Input Card */}
-                    <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
+                    <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
                         {/* Model Selection */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                 <Cpu className="w-4 h-4" />
-                                Select Model
+                                Select ML Model
                             </label>
                             <div className="relative">
                                 <button
                                     onClick={() => setShowModelDropdown(!showModelDropdown)}
-                                    disabled={loadingModels}
+                                    disabled={loadingModels || loading || genderLoading}
                                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-all text-left"
                                 >
-                                    <span className="font-medium">
+                                    <span className="font-medium text-sm sm:text-base">
                                         {loadingModels ? "Loading models..." : getSelectedModelName()}
                                     </span>
                                     <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
@@ -161,10 +204,31 @@ export default function DemoPage() {
                                                     }}
                                                     className={`w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors ${selectedModel === model.type ? 'bg-primary/10 border-l-2 border-primary' : ''}`}
                                                 >
-                                                    <div className="font-medium">{model.name}</div>
-                                                    <div className="text-sm text-muted-foreground">{model.description}</div>
+                                                    <div className="font-medium text-sm">{model.name}</div>
+                                                    <div className="text-xs text-muted-foreground">{model.description}</div>
                                                 </button>
                                             ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                                {/* Maintenance Notice for Multilabel */}
+                                <AnimatePresence>
+                                    {selectedModel === 'multilabel' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                                                    <AlertCircle className="w-5 h-5 text-orange-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-orange-200">Maintenance Mode</p>
+                                                    <p className="text-xs text-orange-300/80">We are currently fine-tuning this model. Expect improvements soon!</p>
+                                                </div>
+                                            </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -173,13 +237,13 @@ export default function DemoPage() {
 
                         {/* Example Pills */}
                         <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground">Try an example:</p>
+                            <p className="text-sm text-muted-foreground">Quick Examples:</p>
                             <div className="flex flex-wrap gap-2">
                                 {PRESET_EXAMPLES.map((ex, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setText(ex.text)}
-                                        className="px-4 py-2 rounded-full text-sm font-medium bg-muted/50 hover:bg-muted border border-border/50 hover:border-primary/30 transition-all"
+                                        className="px-4 py-1.5 rounded-full text-xs font-medium bg-muted/50 hover:bg-muted border border-border/50 hover:border-primary/30 transition-all"
                                     >
                                         {ex.label}
                                     </button>
@@ -196,33 +260,35 @@ export default function DemoPage() {
                         />
 
                         {/* Action Buttons */}
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <span className="text-xs text-muted-foreground">{text.length}/2000</span>
                                 {text && (
                                     <button onClick={handleReset} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                                        <RotateCcw className="w-3 h-3" /> Clear
+                                        <RotateCcw className="w-3 h-3" /> Reset
                                     </button>
                                 )}
                             </div>
-                            <Button
-                                onClick={handlePredict}
-                                disabled={loading || !text.trim()}
-                                size="lg"
-                                className="px-8 h-12 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity font-semibold"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Analyzing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Sparkles className="mr-2 h-5 w-5" />
-                                        Analyze Text
-                                    </>
-                                )}
-                            </Button>
+                            <div className="flex gap-3 w-full sm:w-auto">
+                                <Button
+                                    onClick={handlePredict}
+                                    disabled={loading || genderLoading || !text.trim()}
+                                    size="lg"
+                                    className="px-10 h-12 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity font-semibold rounded-2xl"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Analyzing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="mr-2 h-5 w-5" />
+                                            Analyze with AI
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -237,7 +303,7 @@ export default function DemoPage() {
                             >
                                 <div className="flex items-center gap-3">
                                     <AlertCircle className="h-5 w-5 text-destructive" />
-                                    <span className="text-destructive">{error}</span>
+                                    <span className="text-destructive text-sm font-medium">{error}</span>
                                 </div>
                             </motion.div>
                         )}
@@ -245,109 +311,111 @@ export default function DemoPage() {
 
                     {/* Results */}
                     <AnimatePresence>
-                        {result && (
+                        {(result || genderResult) && (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 className="space-y-6"
                             >
-                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex items-center justify-between flex-wrap gap-2 px-2">
                                     <h2 className="text-xl font-bold">Analysis Results</h2>
                                     <div className="flex items-center gap-2">
-                                        {result.model_used && (
-                                            <Badge variant="outline" className="font-mono text-xs px-3 py-1 bg-primary/10">
-                                                <Cpu className="w-3 h-3 mr-1" />
-                                                {result.model_used}
-                                            </Badge>
-                                        )}
-                                        <Badge variant="outline" className="font-mono text-xs px-3 py-1">
-                                            {result.latency_ms.toFixed(1)}ms
+                                        <Badge variant="outline" className="font-mono text-[10px] px-3 py-1 bg-primary/10">
+                                            <Cpu className="w-3 h-3 mr-1" />
+                                            {(result || genderResult)?.model_used}
+                                        </Badge>
+                                        <Badge variant="outline" className="font-mono text-[10px] px-3 py-1">
+                                            {(result || genderResult)?.latency_ms.toFixed(1)}ms
                                         </Badge>
                                     </div>
                                 </div>
 
-                                <div className={`grid gap-4 ${result.gender ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                                <div className={`grid gap-4 ${result?.gender ? 'sm:grid-cols-3' : result ? 'sm:grid-cols-2' : 'sm:grid-cols-1 max-w-md mx-auto'}`}>
                                     {/* Profanity Card */}
-                                    <div className="glass-card rounded-2xl p-6 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Profanity</span>
-                                            <Badge variant={result.profanity.label === "Profane" ? "destructive" : "default"} className={result.profanity.label !== "Profane" ? 'bg-green-500/20 text-green-400 border-green-500/30' : ''}>
-                                                {result.profanity.label}
-                                            </Badge>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">Confidence</span>
-                                                <span className="font-mono font-bold">{(result.profanity.confidence * 100).toFixed(1)}%</span>
-                                            </div>
-                                            <div className="h-3 bg-muted/50 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${result.profanity.confidence * 100}%` }}
-                                                    transition={{ duration: 0.8 }}
-                                                    className={`h-full rounded-full bg-gradient-to-r ${getConfidenceColor(result.profanity.label, result.profanity.confidence)}`}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Offensiveness Card */}
-                                    <div className="glass-card rounded-2xl p-6 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Offensiveness</span>
-                                            <Badge
-                                                variant={result.offensiveness.label === "Offensive" ? "destructive" : "default"}
-                                                className={
-                                                    result.offensiveness.label.includes("N/A")
-                                                        ? 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                                                        : result.offensiveness.label !== "Offensive"
-                                                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                                                            : ''
-                                                }
-                                            >
-                                                {result.offensiveness.label}
-                                            </Badge>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">Confidence</span>
-                                                <span className="font-mono font-bold">
-                                                    {result.offensiveness.label.includes("N/A")
-                                                        ? "—"
-                                                        : `${(result.offensiveness.confidence * 100).toFixed(1)}%`
-                                                    }
-                                                </span>
-                                            </div>
-                                            <div className="h-3 bg-muted/50 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: result.offensiveness.label.includes("N/A") ? '0%' : `${result.offensiveness.confidence * 100}%` }}
-                                                    transition={{ duration: 0.8, delay: 0.1 }}
-                                                    className={`h-full rounded-full bg-gradient-to-r ${getConfidenceColor(result.offensiveness.label, result.offensiveness.confidence)}`}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Gender Card (Optional) */}
-                                    {result.gender && (
-                                        <div className="glass-card rounded-2xl p-6 space-y-4">
+                                    {result?.profanity && result.profanity.label !== "N/A" && (
+                                        <div className="glass-card rounded-2xl p-6 space-y-4 border-l-4 border-l-primary">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Gender</span>
-                                                <Badge variant="outline" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-                                                    {result.gender.label}
+                                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Profanity</span>
+                                                <Badge variant={result.profanity.label === "Profane" ? "destructive" : "default"} className={result.profanity.label !== "Profane" ? 'bg-green-500/20 text-green-400 border-green-500/30' : ''}>
+                                                    {result.profanity.label}
                                                 </Badge>
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-muted-foreground">Confidence</span>
-                                                    <span className="font-mono font-bold">{(result.gender.confidence * 100).toFixed(1)}%</span>
+                                                    <span className="font-mono font-bold">{(result.profanity.confidence * 100).toFixed(1)}%</span>
                                                 </div>
-                                                <div className="h-3 bg-muted/50 rounded-full overflow-hidden">
+                                                <div className="h-2.5 bg-muted/50 rounded-full overflow-hidden">
                                                     <motion.div
                                                         initial={{ width: 0 }}
-                                                        animate={{ width: `${result.gender.confidence * 100}%` }}
+                                                        animate={{ width: `${result.profanity.confidence * 100}%` }}
+                                                        transition={{ duration: 0.8 }}
+                                                        className={`h-full rounded-full bg-gradient-to-r ${getConfidenceColor(result.profanity.label, result.profanity.confidence)}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Offensiveness Card */}
+                                    {result?.offensiveness && result.offensiveness.label !== "N/A" && (
+                                        <div className="glass-card rounded-2xl p-6 space-y-4 border-l-4 border-l-accent">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Offensiveness</span>
+                                                <Badge
+                                                    variant={result.offensiveness.label === "Offensive" ? "destructive" : "default"}
+                                                    className={
+                                                        result.offensiveness.label.includes("N/A")
+                                                            ? 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                                                            : result.offensiveness.label !== "Offensive"
+                                                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                                                                : ''
+                                                    }
+                                                >
+                                                    {result.offensiveness.label}
+                                                </Badge>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-muted-foreground">Confidence</span>
+                                                    <span className="font-mono font-bold">
+                                                        {result.offensiveness.label.includes("N/A")
+                                                            ? "—"
+                                                            : `${(result.offensiveness.confidence * 100).toFixed(1)}%`
+                                                        }
+                                                    </span>
+                                                </div>
+                                                <div className="h-2.5 bg-muted/50 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: result.offensiveness.label.includes("N/A") ? '0%' : `${result.offensiveness.confidence * 100}%` }}
+                                                        transition={{ duration: 0.8, delay: 0.1 }}
+                                                        className={`h-full rounded-full bg-gradient-to-r ${getConfidenceColor(result.offensiveness.label, result.offensiveness.confidence)}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Gender Card */}
+                                    {(result?.gender || genderResult?.gender) && (
+                                        <div className="glass-card rounded-2xl p-6 space-y-4 border-l-4 border-l-purple-500">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Gender AI</span>
+                                                <Badge variant="outline" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                                                    {(result?.gender || genderResult?.gender)?.label}
+                                                </Badge>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-muted-foreground">Confidence</span>
+                                                    <span className="font-mono font-bold">{(((result?.gender || genderResult?.gender)?.confidence || 0) * 100).toFixed(1)}%</span>
+                                                </div>
+                                                <div className="h-2.5 bg-muted/50 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${((result?.gender || genderResult?.gender)?.confidence || 0) * 100}%` }}
                                                         transition={{ duration: 0.8, delay: 0.2 }}
                                                         className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
                                                     />
@@ -357,10 +425,58 @@ export default function DemoPage() {
                                     )}
                                 </div>
 
-                                <div className="flex justify-end">
-                                    <Button variant="ghost" size="sm" onClick={copyResult} className="text-muted-foreground hover:text-foreground">
+                                {/* Feedback Section */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="glass-card rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-primary/20"
+                                >
+                                    <div>
+                                        <h3 className="text-sm font-semibold flex items-center gap-2">
+                                            🔍 Was this prediction correct?
+                                        </h3>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Your feedback helps us retrain and improve our models.
+                                        </p>
+                                    </div>
+
+                                    {feedbackSent ? (
+                                        <motion.div
+                                            initial={{ scale: 0.8 }}
+                                            animate={{ scale: 1 }}
+                                            className="flex items-center gap-2 text-green-400 text-sm font-medium"
+                                        >
+                                            <Check className="w-4 h-4" />
+                                            Thank you for your feedback!
+                                        </motion.div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleFeedback(true)}
+                                                className="rounded-lg hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/50"
+                                            >
+                                                <ThumbsUp className="w-3.5 h-3.5 mr-2" />
+                                                Correct
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleFeedback(false)}
+                                                className="rounded-lg hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50"
+                                            >
+                                                <ThumbsDown className="w-3.5 h-3.5 mr-2" />
+                                                Incorrect
+                                            </Button>
+                                        </div>
+                                    )}
+                                </motion.div>
+
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="ghost" size="sm" onClick={copyResult} className="text-muted-foreground hover:text-foreground h-9">
                                         {copied ? <Check className="h-4 w-4 mr-2 text-green-500" /> : <Copy className="h-4 w-4 mr-2" />}
-                                        {copied ? "Copied!" : "Copy JSON"}
+                                        {copied ? "Copied!" : "JSON"}
                                     </Button>
                                 </div>
                             </motion.div>

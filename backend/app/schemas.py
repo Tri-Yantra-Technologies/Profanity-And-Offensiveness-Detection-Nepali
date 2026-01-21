@@ -52,6 +52,15 @@ class AnalyzeOutput(BaseModel):
 class HealthCheck(BaseModel):
     status: str
 
+class FeedbackInput(BaseModel):
+    """Input for user feedback on predictions."""
+    text: str
+    model_used: str
+    prediction: Dict[str, Any]
+    is_correct: bool
+    corrected_label: Optional[str] = None
+    timestamp: Optional[float] = None
+
 class ModelInfo(BaseModel):
     type: str
     name: str

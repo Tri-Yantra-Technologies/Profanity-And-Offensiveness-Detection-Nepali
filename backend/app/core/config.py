@@ -3,7 +3,7 @@ from typing import Optional
 from pathlib import Path
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Nepali Profanity & Offensiveness Detection"
+    PROJECT_NAME: str = "NepSense"
     VERSION: str = "1.0.0"
     
     # CORS
