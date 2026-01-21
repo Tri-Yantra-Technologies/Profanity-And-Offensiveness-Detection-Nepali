@@ -8,7 +8,7 @@ export const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 10000, // 10 second timeout
+    timeout: 60000, // 60 second timeout (BERT models may take longer)
 });
 
 export interface LabelConfidence {
@@ -20,6 +20,36 @@ export interface PredictionResponse {
     profanity: LabelConfidence;
     offensiveness: LabelConfidence;
     latency_ms: number;
+    model_used?: string;
+    gender?: LabelConfidence;  // Only for multi_output model
+}
+
+export interface GenderResponse {
+    gender: LabelConfidence;
+    latency_ms: number;
+    model_used: string;
+}
+
+export interface AnalyzeResponse {
+    text: string;
+    processed_text: string;
+    profanity_binary: LabelConfidence | null;
+    offensive_binary: LabelConfidence | null;
+    multilabel: LabelConfidence | null;
+    gender: LabelConfidence | null;
+    latency_ms: number;
+    models_used: string[];
+}
+
+export interface ModelInfo {
+    type: string;
+    name: string;
+    description: string;
+}
+
+export interface ModelsListResponse {
+    available_models: ModelInfo[];
+    default_model: string;
 }
 
 export interface MetaResponse {
@@ -27,6 +57,7 @@ export interface MetaResponse {
     paper: string;
     paper_link: string;
     mock_mode: boolean;
+    available_models: string[];
     rate_limit: {
         requests: number;
         window_seconds: number;
@@ -61,6 +92,11 @@ const getErrorMessage = (err: unknown): string => {
             return 'Too many requests. Please wait a moment and try again.';
         }
 
+        // Service unavailable (e.g., model still loading)
+        if (axiosError.response?.status === 503) {
+            return axiosError.response.data?.message || 'Service temporarily unavailable. Please try again in a moment.';
+        }
+
         // Server error with message
         if (axiosError.response?.data?.message) {
             return axiosError.response.data.message;
@@ -75,9 +111,30 @@ const getErrorMessage = (err: unknown): string => {
     return 'An unexpected error occurred. Please try again.';
 };
 
-export const predictText = async (text: string): Promise<PredictionResponse> => {
+export const predictText = async (text: string, modelType?: string): Promise<PredictionResponse> => {
     try {
-        const response = await api.post<PredictionResponse>('/predict', { text });
+        const response = await api.post<PredictionResponse>('/predict', {
+            text,
+            model_type: modelType
+        });
+        return response.data;
+    } catch (err) {
+        throw new Error(getErrorMessage(err));
+    }
+};
+
+export const predictGender = async (text: string): Promise<GenderResponse> => {
+    try {
+        const response = await api.post<GenderResponse>('/predict/gender', { text });
+        return response.data;
+    } catch (err) {
+        throw new Error(getErrorMessage(err));
+    }
+};
+
+export const analyzeText = async (text: string): Promise<AnalyzeResponse> => {
+    try {
+        const response = await api.post<AnalyzeResponse>('/analyze', { text });
         return response.data;
     } catch (err) {
         throw new Error(getErrorMessage(err));
@@ -101,3 +158,13 @@ export const getMeta = async (): Promise<MetaResponse> => {
         throw new Error(getErrorMessage(err));
     }
 };
+
+export const getModels = async (): Promise<ModelsListResponse> => {
+    try {
+        const response = await api.get<ModelsListResponse>('/models');
+        return response.data;
+    } catch (err) {
+        throw new Error(getErrorMessage(err));
+    }
+};
+

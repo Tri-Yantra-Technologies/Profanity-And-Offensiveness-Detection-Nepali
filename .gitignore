@@ -1,18 +1,22 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
 
 # Build output
 frontend/.next/
 frontend/out/
 frontend/build/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+backend/venv/
+
 # Environment files
 .env
 .env.local
 .env.*.local
 frontend/.env
-frontend/.env.local
 backend/.env
 
 # IDE
@@ -27,10 +31,8 @@ Thumbs.db
 
 # Logs
 *.log
-npm-debug.log*
-yarn-debug.log*
 
-# Model artifacts (large files - download at runtime)
+# Model artifacts (large files)
 backend/artifacts/*.pkl
 
 # Misc

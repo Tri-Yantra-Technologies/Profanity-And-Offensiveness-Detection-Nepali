@@ -1,45 +1,36 @@
-# Profanity & Offensiveness Detection in Nepali (Web Demo)
+# Nepali Profanity & Offensiveness Detection
 
-A production-ready web demo for the research paper **"Profanity and Offensiveness Detection in Nepali Language Using Bi-directional LSTM Models"** (ICON 2024).
+A full-stack web application for detecting profanity and offensiveness in Nepali text (Romanized & Devanagari) using Bi-directional LSTM models. Based on research published at **ICON 2024**.
 
-**Paper:** [ACL Anthology](https://aclanthology.org/2024.icon-1.60)
+![UI Preview](https://github.com/user-attachments/assets/placeholder.png)
 
-## Features
+## 🚀 Features
+- **Dual Classification**: Simultaneously detects Profanity (Profane/Not Profane) and Offensiveness (Offensive/Not Offensive).
+- **Hybrid Input Support**: Works with both Devanagari (e.g., "मुला") and Romanized Nepali (e.g., "Mula").
+- **State-of-the-Art Models**: Powered by Bi-LSTM deep learning architectures.
+- **Premium UI**: Glassmorphism design, Three.js animations, and interactive visualizations.
+- **Fast API**: High-performance FastAPI backend with caching and rate limiting.
 
-- **Dual Classification:** Detects both profanity and offensiveness in Nepali text
-- **Confidence Scores:** Returns prediction confidence for each classification
-- **Romanized & Devanagari:** Supports both Nepali script styles
-- **Rate Limited API:** Built-in protection against abuse
-- **Mock Mode:** Runs with demo predictions when model artifacts aren't available
+## 🛠 Tech Stack
+- **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion, Three.js
+- **Backend**: FastAPI, TensorFlow/Keras, Joblib
+- **Models**: Bi-directional LSTMs with Keras Tokenizers
 
-## Project Structure
-
-```
-├── backend/           # FastAPI application (Python 3.11)
-│   ├── app/
-│   │   ├── main.py           # API endpoints
-│   │   ├── models.py         # ML model manager
-│   │   ├── schemas.py        # Pydantic schemas
-│   │   ├── rate_limit.py     # Rate limiting
-│   │   └── core/config.py    # Configuration
-│   ├── artifacts/            # Place model .pkl files here
-│   ├── Dockerfile
-│   └── requirements.txt
-│
-└── frontend/          # Next.js 14 application
-    ├── src/app/              # Pages (landing, demo, examples, api)
-    ├── src/components/       # UI components
-    └── src/lib/api.ts        # API client
-```
-
-## Quick Start (Local Development)
+## 🏁 Getting Started
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- npm
+- Python 3.9+
+- Node.js 18+
+- Git
 
-### 1. Backend Setup
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/nepali-profanity-detection.git
+cd nepali-profanity-detection
+```
+
+### 2. Backend Setup
+The backend runs the AI models and exposes the REST API.
 
 ```bash
 cd backend
@@ -47,127 +38,53 @@ cd backend
 # Create virtual environment
 python -m venv venv
 
-# Activate (Windows)
-venv\Scripts\activate
-# Activate (Mac/Linux)
-# source venv/bin/activate
+# Activate virtual environment
+# Windows:
+.\venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
 
-# Install dependencies
+# Install dependencies (including TensorFlow)
 pip install -r requirements.txt
 
-# Run the server
+# Run the backend server
 python run_backend.py
 ```
+*The backend will start at `http://localhost:8000`*
 
-Backend will run at `http://localhost:8000`
-- API Docs: http://localhost:8000/api/docs
-
-### 2. Frontend Setup
+### 3. Frontend Setup
+The frontend is the user interface.
 
 ```bash
+# Open a new terminal
 cd frontend
 
 # Install dependencies
 npm install
 
-# Run dev server
+# Run the development server
 npm run dev
 ```
+*The frontend will start at `http://localhost:3000` (or 3001/3002 if 3000 is busy)*
 
-Frontend will run at `http://localhost:3000`
+## 🧠 Model Information
+This project uses custom-trained Bi-LSTM models. The artifacts are located in `backend/pkl/`:
+- `Binomial_LSTM_Profane.pkl`: Profanity classifier
+- `Binomial_LSTM_Offensive.pkl`: Offensiveness classifier
+- `Mutlilabel_LSTM_Offensive_Profane.pkl`: Combined model/tokenizer
 
-## Using Real Models
+## 📚 API Documentation
+Once the backend is running, full API docs (Swagger UI) are available at:
+`http://localhost:8000/docs`
 
-By default, the system uses **mock predictions**. To use your trained models:
+### Key Endpoints
+- `POST /predict`: Analyze text
+- `GET /health`: System status
+- `GET /meta`: Model metadata
 
-1. Place your model files in `backend/artifacts/`:
-   - `profanity_model.pkl`
-   - `offensiveness_model.pkl`
+## 📄 Research
+This work is based on the paper **"Detecting Profanity and Offensiveness in Nepali Text"** published at ICON 2024.
+[Read the Paper (ACL Anthology)](https://aclanthology.org/2024.icon-1.60)
 
-2. Ensure your models have sklearn-compatible interface:
-   ```python
-   model.predict_proba([text])  # Returns probabilities
-   model.classes_               # Returns class labels
-   ```
-
-3. If your models have different interface, modify `backend/app/models.py` `_predict_real()` method.
-
-### Remote Model Loading
-
-For production, you can host models on S3/HuggingFace and set:
-
-```bash
-MODEL_PROFANITY_URL=https://huggingface.co/your-repo/resolve/main/profanity_model.pkl
-MODEL_OFFENSIVENESS_URL=https://huggingface.co/your-repo/resolve/main/offensiveness_model.pkl
-```
-
-Models will be downloaded at startup and cached locally.
-
-## Deployment
-
-### Backend (Render/Railway)
-
-1. Create a new Web Service and connect your repo
-2. Set root directory to `backend`
-3. Use Docker deployment with the provided `Dockerfile`
-4. Set environment variables:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `FRONTEND_ORIGIN` | Your frontend URL (for CORS) | `https://myapp.vercel.app` |
-| `MODEL_PROFANITY_URL` | (Optional) Remote model URL | Hugging Face URL |
-| `MODEL_OFFENSIVENESS_URL` | (Optional) Remote model URL | Hugging Face URL |
-| `RATE_LIMIT_REQUESTS` | Max requests per window | `20` |
-| `RATE_LIMIT_WINDOW` | Window in seconds | `60` |
-
-### Frontend (Vercel)
-
-1. Import your repo to Vercel
-2. Set root directory to `frontend`
-3. Set environment variable:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_API_BASE_URL` | Your backend URL | `https://mybackend.onrender.com` |
-
-4. Deploy!
-
-### CORS Configuration
-
-The backend CORS is configured via `FRONTEND_ORIGIN` env var. Make sure it matches your deployed frontend URL exactly (including `https://`).
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/meta` | GET | Model version & paper info |
-| `/predict` | POST | Analyze text (rate limited) |
-
-### Example Request
-
-```bash
-curl -X POST "https://your-api.com/predict" \
-  -H "Content-Type: application/json" \
-  -d '{"text": "तपाईंको काम राम्रो छ"}'
-```
-
-### Example Response
-
-```json
-{
-  "profanity": {"label": "Not Profane", "confidence": 0.98},
-  "offensiveness": {"label": "Not Offensive", "confidence": 0.95},
-  "latency_ms": 45.2
-}
-```
-
-## Tech Stack
-
-- **Backend:** FastAPI, Python 3.11, joblib, scikit-learn
-- **Frontend:** Next.js 14, React, Tailwind CSS, shadcn/ui
-- **Fonts:** Inter, Noto Sans Devanagari
-
-## License
-
-Open Source - MIT License
+## ⚖️ License
+MIT License - Free for research and educational use.

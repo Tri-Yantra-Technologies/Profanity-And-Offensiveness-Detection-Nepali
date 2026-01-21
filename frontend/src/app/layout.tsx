@@ -11,12 +11,6 @@ export const metadata: Metadata = {
   title: "Nepali Profanity & Offensiveness Detection",
   description: "Research demo for the ICON 2024 paper on detecting profanity and offensiveness in Nepali language using Bi-directional LSTM models.",
   keywords: ["Nepali", "NLP", "profanity detection", "offensive language", "LSTM", "machine learning", "ICON 2024"],
-  authors: [{ name: "Research Team" }],
-  openGraph: {
-    title: "Nepali Profanity & Offensiveness Detection",
-    description: "State-of-the-art NLP model for detecting harmful content in Nepali text",
-    type: "website",
-  },
 };
 
 export default function RootLayout({
@@ -25,9 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
-        {/* Noto Sans Devanagari for Nepali text */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -35,7 +28,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} antialiased font-sans`}>
+      <body className={`${inter.variable} antialiased`}>
         {children}
       </body>
     </html>
