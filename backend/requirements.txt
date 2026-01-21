@@ -7,6 +7,17 @@ joblib>=1.4.0
 scikit-learn>=1.4.0
 requests>=2.31.0
 httpx>=0.27.0
-# Uncomment the following if your model uses specific DL frameworks
-# tensorflow>=2.16.0
-# torch>=2.2.0
+
+# Deep Learning frameworks
+tensorflow>=2.15.0
+keras>=3.0.0
+numpy>=1.26.0
+
+# For Multi-Output BERT model
+torch>=2.0.0
+transformers>=4.36.0
+nltk>=3.8.0
+
+# For transliteration (Romanized Nepali to Devanagari)
+ai4bharat-transliteration>=1.1.0
+langdetect>=1.0.9

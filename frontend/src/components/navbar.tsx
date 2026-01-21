@@ -1,40 +1,73 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { motion } from "framer-motion"
+
+const navItems = [
+    { href: "/", label: "Home" },
+    { href: "/demo", label: "Analyze" },
+    { href: "/examples", label: "Examples" },
+]
 
 export function Navbar() {
+    const pathname = usePathname()
+
     return (
-        <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-            <div className="container flex h-16 items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Link href="/" className="flex items-center space-x-2">
-                        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            Nepali AI
-                        </span>
-                    </Link>
-                </div>
-                <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-                    <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground/60">
-                        Home
-                    </Link>
-                    <Link href="/demo" className="transition-colors hover:text-foreground/80 text-foreground/60">
-                        Demo
-                    </Link>
-                    <Link href="/examples" className="transition-colors hover:text-foreground/80 text-foreground/60">
-                        Examples
-                    </Link>
-                    <Link href="/api" className="transition-colors hover:text-foreground/80 text-foreground/60">
-                        API
-                    </Link>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Link href="https://aclanthology.org/2024.icon-1.60" target="_blank">
-                        <Button variant="outline" size="sm">Read Paper</Button>
-                    </Link>
-                    <Link href="/demo">
-                        <Button size="sm">Try Demo</Button>
-                    </Link>
+        <motion.nav
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="fixed top-0 left-0 right-0 z-50"
+        >
+            <div className="mx-4 mt-4">
+                <div className="glass rounded-2xl px-6 py-4">
+                    <div className="flex items-center justify-between max-w-6xl mx-auto">
+                        <Link href="/" className="flex items-center gap-2 group">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">NP</span>
+                            </div>
+                            <span className="font-bold text-lg hidden sm:block group-hover:text-primary transition-colors">
+                                NepDetect
+                            </span>
+                        </Link>
+
+                        <div className="hidden md:flex items-center gap-1">
+                            {navItems.map((item) => {
+                                const isActive = pathname === item.href
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="relative px-4 py-2 rounded-lg transition-colors"
+                                    >
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId="navbar-active"
+                                                className="absolute inset-0 bg-primary/20 rounded-lg"
+                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                            />
+                                        )}
+                                        <span className={`relative z-10 text-sm font-medium ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                                            }`}>
+                                            {item.label}
+                                        </span>
+                                    </Link>
+                                )
+                            })}
+                        </div>
+
+                        <a
+                            href="https://aclanthology.org/2024.icon-1.60"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                        >
+                            Read Paper
+                        </a>
+                    </div>
                 </div>
             </div>
-        </nav>
-    );
+        </motion.nav>
+    )
 }

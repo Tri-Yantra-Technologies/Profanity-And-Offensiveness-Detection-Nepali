@@ -7,8 +7,11 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.schemas import PredictionInput, PredictionOutput, HealthCheck
-from app.models import model_manager
+from app.schemas import (
+    PredictionInput, PredictionOutput, HealthCheck, ModelsListResponse, ModelInfo,
+    GenderInput, GenderOutput, AnalyzeInput, AnalyzeOutput, LabelConfidence, GenderPrediction
+)
+from app.models import model_manager, ModelType
 from app.rate_limit import check_rate_limit, rate_limiter
 
 # Configure structured logging
@@ -26,7 +29,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up... Loading models.")
     # Accessing model_manager triggers load in __init__
     _ = model_manager
-    logger.info(f"Startup complete. Mock mode: {model_manager.is_mock}")
+    logger.info("Startup complete.")
+    logger.info(f"Available models: {[m['type'] for m in model_manager.get_available_models()]}")
     yield
     logger.info("Shutting down...")
 
@@ -91,7 +95,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "error": "internal_server_error",
-            "message": "An unexpected error occurred",
+            "message": str(exc),  # Expose actual error for debugging
             "request_id": request_id
         }
     )
@@ -103,14 +107,39 @@ async def health_check():
     return {"status": "ok"}
 
 
+@app.get("/models", response_model=ModelsListResponse)
+async def list_models():
+    """
+    List all available models for prediction.
+    
+    Returns the available model types that can be used in the /predict endpoint.
+    """
+    available = model_manager.get_available_models()
+    # Note: profane_binary works correctly, multilabel has training issues
+    default_model = "profane_binary" if any(m["type"] == "profane_binary" for m in available) else (
+        available[0]["type"] if available else "mock"
+    )
+    
+    return {
+        "available_models": [
+            ModelInfo(type=m["type"], name=m["name"], description=m["description"])
+            for m in available
+        ],
+        "default_model": default_model
+    }
+
+
 @app.get("/meta")
 async def metadata():
     """Get API metadata and paper information."""
+    available_models = model_manager.get_available_models()
+    
     return {
         "model_version": settings.VERSION,
         "paper": "Profanity and Offensiveness Detection in Nepali Language Using Bi-directional LSTM Models (ICON 2024)",
         "paper_link": "https://aclanthology.org/2024.icon-1.60",
-        "mock_mode": model_manager.is_mock,
+        "mock_mode": getattr(model_manager, 'is_mock', False),
+        "available_models": [m["type"] for m in available_models],
         "rate_limit": {
             "requests": settings.RATE_LIMIT_REQUESTS,
             "window_seconds": settings.RATE_LIMIT_WINDOW
@@ -127,6 +156,13 @@ async def predict(
     """
     Predict profanity and offensiveness of Nepali text.
     
+    - **text**: The Nepali text to analyze (Devanagari or Romanized)
+    - **model_type**: Optional. Choose the model:
+      - `profane_binary`: Detects profanity only (default, most reliable)
+      - `offensive_binary`: Detects offensiveness only
+      - `multilabel`: Classifies as Non-Offensive, Offensive, or Profane
+      - `multi_output`: BERT-based model with gender + profanity prediction
+    
     Rate limited to prevent abuse.
     """
     if not input_data.text.strip():
@@ -134,22 +170,173 @@ async def predict(
     
     try:
         start = time.time()
-        result = model_manager.predict(input_data.text)
+        result = model_manager.predict(input_data.text, input_data.model_type)
         duration_ms = (time.time() - start) * 1000
+        
+        # Determine which model was actually used
+        model_used = input_data.model_type if input_data.model_type else "profane_binary"
         
         # Add rate limit headers to response
         is_allowed, remaining = rate_limiter.check_rate_limit(request)
         
-        return {
+        # Build response
+        response = {
             "profanity": result["profanity"],
             "offensiveness": result["offensiveness"],
-            "latency_ms": round(duration_ms, 2)
+            "latency_ms": round(duration_ms, 2),
+            "model_used": model_used,
+            "_debug_raw": result.get("_raw")
         }
         
+        # Add gender if present (from multi_output model)
+        if "gender" in result:
+            response["gender"] = result["gender"]
+        
+        return response
+        
+    except ValueError as e:
+         # Known errors (e.g. Model not loaded) -> 400 Bad Request
+         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         request_id = getattr(request.state, "request_id", "unknown")
         logger.error(f"req_id={request_id} | Prediction failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error during prediction")
+        # Expose actual error to user
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/predict/gender", response_model=GenderOutput)
+async def predict_gender(
+    input_data: GenderInput,
+    request: Request,
+    _: None = Depends(check_rate_limit)
+):
+    """
+    Predict the gender of the speaker from Nepali text.
+    
+    Uses the Multi-Output BERT model which was trained to predict gender
+    based on text patterns and language usage.
+    
+    - **text**: The Nepali text to analyze (Devanagari or Romanized)
+    
+    Rate limited to prevent abuse.
+    """
+    if not input_data.text.strip():
+        raise HTTPException(status_code=400, detail="Input text cannot be empty")
+    
+    # Check if multi_output model is available
+    if ModelType.MULTI_OUTPUT not in model_manager.models:
+        raise HTTPException(
+            status_code=503, 
+            detail="Gender prediction requires the Multi-Output BERT model which is still loading. Please try again in a moment."
+        )
+    
+    try:
+        start = time.time()
+        result = model_manager.predict(input_data.text, "multi_output")
+        duration_ms = (time.time() - start) * 1000
+        
+        if "gender" not in result:
+            raise HTTPException(status_code=500, detail="Gender prediction failed")
+        
+        return {
+            "gender": result["gender"],
+            "latency_ms": round(duration_ms, 2),
+            "model_used": "multi_output"
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        request_id = getattr(request.state, "request_id", "unknown")
+        logger.error(f"req_id={request_id} | Gender prediction failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/analyze", response_model=AnalyzeOutput)
+async def analyze_all(
+    input_data: AnalyzeInput,
+    request: Request,
+    _: None = Depends(check_rate_limit)
+):
+    """
+    Run comprehensive analysis using all available models.
+    
+    Returns predictions from:
+    - Profane Binary Model (profanity detection)
+    - Offensive Binary Model (offensiveness detection)
+    - Multilabel Model (combined classification)
+    - Multi-Output BERT Model (gender + profanity)
+    
+    Rate limited to prevent abuse.
+    """
+    if not input_data.text.strip():
+        raise HTTPException(status_code=400, detail="Input text cannot be empty")
+    
+    try:
+        start = time.time()
+        processed_text = model_manager.preprocess_text(input_data.text)
+        
+        results = {
+            "text": input_data.text,
+            "processed_text": processed_text,
+            "profanity_binary": None,
+            "offensive_binary": None,
+            "multilabel": None,
+            "gender": None,
+            "models_used": []
+        }
+        
+        # Try each model
+        if ModelType.PROFANE_BINARY in model_manager.models:
+            try:
+                pred = model_manager.predict(input_data.text, "profane_binary")
+                results["profanity_binary"] = pred["profanity"]
+                results["models_used"].append("profane_binary")
+            except Exception as e:
+                logger.warning(f"Profane binary prediction failed: {e}")
+        
+        if ModelType.OFFENSIVE_BINARY in model_manager.models:
+            try:
+                pred = model_manager.predict(input_data.text, "offensive_binary")
+                results["offensive_binary"] = pred["offensiveness"]
+                results["models_used"].append("offensive_binary")
+            except Exception as e:
+                logger.warning(f"Offensive binary prediction failed: {e}")
+        
+        if ModelType.MULTILABEL in model_manager.models:
+            try:
+                pred = model_manager.predict(input_data.text, "multilabel")
+                # Get the _raw prediction which has the class label
+                raw = pred.get("_raw", {})
+                results["multilabel"] = LabelConfidence(
+                    label=raw.get("label", "Unknown"),
+                    confidence=raw.get("confidence", 0.0)
+                )
+                results["models_used"].append("multilabel")
+            except Exception as e:
+                logger.warning(f"Multilabel prediction failed: {e}")
+        
+        if ModelType.MULTI_OUTPUT in model_manager.models:
+            try:
+                pred = model_manager.predict(input_data.text, "multi_output")
+                if "gender" in pred:
+                    results["gender"] = GenderPrediction(
+                        label=pred["gender"]["label"],
+                        confidence=pred["gender"]["confidence"]
+                    )
+                results["models_used"].append("multi_output")
+            except Exception as e:
+                logger.warning(f"Multi-output prediction failed: {e}")
+        
+        duration_ms = (time.time() - start) * 1000
+        results["latency_ms"] = round(duration_ms, 2)
+        
+        return results
+        
+    except Exception as e:
+        request_id = getattr(request.state, "request_id", "unknown")
+        logger.error(f"req_id={request_id} | Analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

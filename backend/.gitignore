@@ -3,39 +3,20 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Virtual environment
 venv/
 env/
-ENV/
 
 # Environment files
 .env
 .env.local
-.env.*.local
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
@@ -44,10 +25,10 @@ Thumbs.db
 # Logs
 *.log
 
-# Model artifacts (large files - keep locally or download at runtime)
-# artifacts/*.pkl
+# Model artifacts (large files)
+artifacts/*.pkl
 
-# Misc
+# Pytest
 .pytest_cache/
 .coverage
 htmlcov/
