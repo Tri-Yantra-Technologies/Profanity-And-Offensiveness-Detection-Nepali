@@ -9,8 +9,12 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.schemas import (
     PredictionInput, PredictionOutput, HealthCheck, ModelsListResponse, ModelInfo,
-    GenderInput, GenderOutput, AnalyzeInput, AnalyzeOutput, LabelConfidence, GenderPrediction
+    GenderInput, GenderOutput, AnalyzeInput, AnalyzeOutput, LabelConfidence, GenderPrediction,
+    FeedbackInput
 )
+import csv
+import os
+from datetime import datetime
 from app.models import model_manager, ModelType
 from app.rate_limit import check_rate_limit, rate_limiter
 
@@ -223,16 +227,16 @@ async def predict_gender(
     if not input_data.text.strip():
         raise HTTPException(status_code=400, detail="Input text cannot be empty")
     
-    # Check if multi_output model is available
-    if ModelType.MULTI_OUTPUT not in model_manager.models:
+    # Check if gender model is available
+    if ModelType.GENDER not in model_manager.models:
         raise HTTPException(
             status_code=503, 
-            detail="Gender prediction requires the Multi-Output BERT model which is still loading. Please try again in a moment."
+            detail="Gender prediction is still loading. Please try again in a moment."
         )
     
     try:
         start = time.time()
-        result = model_manager.predict(input_data.text, "multi_output")
+        result = model_manager.predict(input_data.text, "gender")
         duration_ms = (time.time() - start) * 1000
         
         if "gender" not in result:
@@ -241,7 +245,7 @@ async def predict_gender(
         return {
             "gender": result["gender"],
             "latency_ms": round(duration_ms, 2),
-            "model_used": "multi_output"
+            "model_used": "gender"
         }
         
     except ValueError as e:
@@ -250,6 +254,52 @@ async def predict_gender(
         request_id = getattr(request.state, "request_id", "unknown")
         logger.error(f"req_id={request_id} | Gender prediction failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/feedback")
+async def save_feedback(input_data: FeedbackInput):
+    """
+    Save user feedback on model predictions to a CSV file.
+    """
+    feedback_file = os.path.join(settings.BASE_DIR, "feedback.csv")
+    file_exists = os.path.isfile(feedback_file)
+    
+    try:
+        with open(feedback_file, mode="a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, field_names=[
+                "timestamp", "text", "model_used", "prediction_label", 
+                "prediction_confidence", "is_correct", "corrected_label"
+            ])
+            
+            if not file_exists:
+                writer.writeheader()
+            
+            # Extract basic prediction info for simpler CSV storage
+            # This handles both standard prediction and gender output
+            pred_label = "unknown"
+            pred_conf = 0.0
+            
+            if "profanity" in input_data.prediction:
+                pred_label = input_data.prediction["profanity"].get("label", "unknown")
+                pred_conf = input_data.prediction["profanity"].get("confidence", 0.0)
+            elif "gender" in input_data.prediction:
+                pred_label = input_data.prediction["gender"].get("label", "unknown")
+                pred_conf = input_data.prediction["gender"].get("confidence", 0.0)
+                
+            writer.writerow({
+                "timestamp": datetime.now().isoformat(),
+                "text": input_data.text,
+                "model_used": input_data.model_used,
+                "prediction_label": pred_label,
+                "prediction_confidence": pred_conf,
+                "is_correct": input_data.is_correct,
+                "corrected_label": input_data.corrected_label or ""
+            })
+            
+        return {"status": "success", "message": "Feedback saved successfully"}
+    except Exception as e:
+        logger.error(f"Failed to save feedback: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save feedback")
 
 
 @app.post("/analyze", response_model=AnalyzeOutput)

@@ -15,8 +15,8 @@ const ThreeBackground = dynamic(() => import("@/components/three-background"), {
 const features = [
   {
     icon: Shield,
-    title: "Dual Classification",
-    description: "Simultaneously detects profanity and offensiveness for nuanced content analysis.",
+    title: "Triple Detection",
+    description: "State-of-the-art analysis for profanity, offensiveness, and gender identification.",
     gradient: "from-blue-500 to-cyan-500"
   },
   {
@@ -53,12 +53,12 @@ export default function Home() {
           </span>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
-            Detect{" "}
-            <span className="gradient-text">Profanity</span>
-            {" "}&{" "}
-            <span className="gradient-text-warm">Offensiveness</span>
+            Analyze{" "}
+            <span className="gradient-text">Profanity,</span>
             <br />
-            <span className="text-muted-foreground">in Nepali</span>
+            <span className="gradient-text-warm">Offensiveness</span>
+            {" "}&{" "}
+            <span className="text-primary">Gender</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -93,7 +93,7 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Why Use <span className="gradient-text">NepDetect</span>?
+              Why Use <span className="gradient-text">NepSense</span>?
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               Built on cutting-edge research, available for free to the community
@@ -180,10 +180,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-12 border-t border-border/50">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-sm text-muted-foreground">© 2024 NepDetect. Built for ICON 2024 • Free & Open Source</p>
+          <p className="text-sm text-muted-foreground">© 2024 NepSense. Built for ICON 2024 • Free & Open Source</p>
           <a href="https://aclanthology.org/2024.icon-1.60" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
             Read the Paper →
           </a>

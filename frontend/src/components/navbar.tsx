@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 const navItems = [
     { href: "/", label: "Home" },
     { href: "/demo", label: "Analyze" },
-    { href: "/examples", label: "Examples" },
+    { href: "/authors", label: "Authors" },
 ]
 
 export function Navbar() {
@@ -28,7 +28,7 @@ export function Navbar() {
                                 <span className="text-white font-bold text-sm">NP</span>
                             </div>
                             <span className="font-bold text-lg hidden sm:block group-hover:text-primary transition-colors">
-                                NepDetect
+                                NepSense
                             </span>
                         </Link>
 
