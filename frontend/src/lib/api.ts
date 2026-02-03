@@ -70,6 +70,16 @@ export interface ApiError {
     request_id?: string;
 }
 
+export interface CensorResponse {
+    original: string;
+    censored: string;
+    profanity_detected: boolean;
+    offensive_detected: boolean;
+    censored_count: number;
+    latency_ms: number;
+    model_used: string;
+}
+
 /**
  * Get user-friendly error message from API error
  */
@@ -168,6 +178,19 @@ export const checkHealth = async (): Promise<{ status: string }> => {
 export const getMeta = async (): Promise<MetaResponse> => {
     try {
         const response = await api.get<MetaResponse>('/meta');
+        return response.data;
+    } catch (err) {
+        throw new Error(getErrorMessage(err));
+    }
+};
+
+export const censorText = async (text: string, censorChar: string = "*", modelType?: string): Promise<CensorResponse> => {
+    try {
+        const response = await api.post<CensorResponse>('/censor', {
+            text,
+            censor_char: censorChar,
+            model_type: modelType
+        });
         return response.data;
     } catch (err) {
         throw new Error(getErrorMessage(err));

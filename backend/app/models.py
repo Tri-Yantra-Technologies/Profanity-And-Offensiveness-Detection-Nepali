@@ -458,6 +458,82 @@ class ModelManager:
         
         return result
 
+    def censor_text(self, text: str, model_type: Optional[str] = None, censor_char: str = "*") -> Dict[str, Any]:
+        """
+        Censor profane/offensive words in text by detecting and replacing them.
+        
+        Simple word-level censoring based on prediction confidence.
+        For Nepali text, analyzes words and censors those detected as profane/offensive.
+        """
+        processed_text = self.preprocess_text(text)
+        words = processed_text.split()
+        
+        # Get overall prediction first
+        overall_pred = self.predict(text, model_type)
+        
+        # Check if profanity or offensiveness detected at high confidence
+        profanity_conf = overall_pred.get("profanity", {}).get("confidence", 0)
+        offensive_conf = overall_pred.get("offensiveness", {}).get("confidence", 0)
+        profanity_detected = overall_pred.get("profanity", {}).get("label", "").lower() in ["profane", "offensive"]
+        offensive_detected = overall_pred.get("offensiveness", {}).get("label", "").lower() == "offensive"
+        
+        # If no profanity/offensiveness detected, return original
+        if not profanity_detected and not offensive_detected:
+            return {
+                "original": text,
+                "censored": text,
+                "profanity_detected": False,
+                "offensive_detected": False,
+                "censored_count": 0
+            }
+        
+        # Simple word-level analysis for censoring
+        censored_words = []
+        censored_count = 0
+        
+        # For short texts or single words, censor the whole thing if detected
+        if len(words) <= 3 and (profanity_detected or offensive_detected):
+            for word in words:
+                if len(word) > 1:
+                    censored_words.append(censor_char * len(word))
+                    censored_count += 1
+                else:
+                    censored_words.append(word)
+        else:
+            # For longer texts, try to identify specific problematic words
+            for word in words:
+                if len(word) <= 1:
+                    censored_words.append(word)
+                    continue
+                
+                try:
+                    # Test each word individually
+                    word_pred = self.predict(word, model_type)
+                    word_prof_conf = word_pred.get("profanity", {}).get("confidence", 0)
+                    word_off_conf = word_pred.get("offensiveness", {}).get("confidence", 0)
+                    word_is_prof = word_pred.get("profanity", {}).get("label", "").lower() in ["profane", "offensive"]
+                    word_is_off = word_pred.get("offensiveness", {}).get("label", "").lower() == "offensive"
+                    
+                    # Censor if this word is detected as profane/offensive with reasonable confidence
+                    if (word_is_prof and word_prof_conf > 0.6) or (word_is_off and word_off_conf > 0.6):
+                        censored_words.append(censor_char * len(word))
+                        censored_count += 1
+                    else:
+                        censored_words.append(word)
+                except:
+                    # If prediction fails for individual word, keep it
+                    censored_words.append(word)
+        
+        censored_text = " ".join(censored_words)
+        
+        return {
+            "original": text,
+            "censored": censored_text,
+            "profanity_detected": profanity_detected,
+            "offensive_detected": offensive_detected,
+            "censored_count": censored_count
+        }
+
 
 # Global singleton
 model_manager = ModelManager()
