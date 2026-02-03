@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.schemas import (
     PredictionInput, PredictionOutput, HealthCheck, ModelsListResponse, ModelInfo,
     GenderInput, GenderOutput, AnalyzeInput, AnalyzeOutput, LabelConfidence, GenderPrediction,
-    FeedbackInput
+    FeedbackInput, CensorInput, CensorOutput
 )
 import csv
 import os
@@ -386,6 +386,52 @@ async def analyze_all(
     except Exception as e:
         request_id = getattr(request.state, "request_id", "unknown")
         logger.error(f"req_id={request_id} | Analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/censor", response_model=CensorOutput)
+async def censor_text(
+    input_data: CensorInput,
+    request: Request,
+    _: None = Depends(check_rate_limit)
+):
+    """
+    Detect and censor profane/offensive words in Nepali text.
+    
+    Returns both original and censored versions of the text.
+    Words detected as profane or offensive are replaced with the censor character.
+    
+    - **text**: The Nepali text to censor (Devanagari or Romanized)
+    - **censor_char**: Character to use for censoring (default: "*")
+    - **model_type**: Model to use for detection (default: "profane_binary")
+    
+    Rate limited to prevent abuse.
+    """
+    if not input_data.text.strip():
+        raise HTTPException(status_code=400, detail="Input text cannot be empty")
+    
+    try:
+        start = time.time()
+        result = model_manager.censor_text(
+            input_data.text, 
+            input_data.model_type, 
+            input_data.censor_char
+        )
+        duration_ms = (time.time() - start) * 1000
+        
+        return {
+            "original": result["original"],
+            "censored": result["censored"],
+            "profanity_detected": result["profanity_detected"],
+            "offensive_detected": result["offensive_detected"],
+            "censored_count": result["censored_count"],
+            "latency_ms": round(duration_ms, 2),
+            "model_used": input_data.model_type or "profane_binary"
+        }
+        
+    except Exception as e:
+        request_id = getattr(request.state, "request_id", "unknown")
+        logger.error(f"req_id={request_id} | Censoring failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

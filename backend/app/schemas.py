@@ -70,3 +70,19 @@ class ModelsListResponse(BaseModel):
     available_models: List[ModelInfo]
     default_model: str
 
+class CensorInput(BaseModel):
+    """Input for text censoring endpoint."""
+    text: str = Field(..., min_length=1, max_length=2000, example="यो बकवास काम हो")
+    censor_char: Optional[str] = Field("*", max_length=3, description="Character to use for censoring", example="*")
+    model_type: Optional[str] = Field("profane_binary", description="Model to use for detection")
+
+class CensorOutput(BaseModel):
+    """Output for text censoring endpoint."""
+    original: str
+    censored: str
+    profanity_detected: bool
+    offensive_detected: bool
+    censored_count: int
+    latency_ms: float
+    model_used: str
+

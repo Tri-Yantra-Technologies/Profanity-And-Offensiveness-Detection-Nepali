@@ -7,8 +7,8 @@ import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { predictText, predictGender, getModels, submitFeedback, PredictionResponse, ModelInfo, GenderResponse } from "@/lib/api"
-import { Loader2, Copy, Check, AlertCircle, Sparkles, RotateCcw, ChevronDown, Cpu, ThumbsUp, ThumbsDown, User2 } from "lucide-react"
+import { predictText, predictGender, getModels, submitFeedback, censorText, PredictionResponse, ModelInfo, GenderResponse, CensorResponse } from "@/lib/api"
+import { Loader2, Copy, Check, AlertCircle, Sparkles, RotateCcw, ChevronDown, Cpu, ThumbsUp, ThumbsDown, User2, Eye, EyeOff } from "lucide-react"
 
 const ThreeBackground = dynamic(() => import("@/components/three-background"), {
     ssr: false,
@@ -26,8 +26,10 @@ export default function DemoPage() {
     const [text, setText] = useState("")
     const [loading, setLoading] = useState(false)
     const [genderLoading, setGenderLoading] = useState(false)
+    const [censorLoading, setCensorLoading] = useState(false)
     const [result, setResult] = useState<PredictionResponse | null>(null)
     const [genderResult, setGenderResult] = useState<GenderResponse | null>(null)
+    const [censorResult, setCensorResult] = useState<CensorResponse | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
     const [feedbackSent, setFeedbackSent] = useState(false)
@@ -82,6 +84,7 @@ export default function DemoPage() {
         setError(null)
         setResult(null)
         setGenderResult(null)
+        setCensorResult(null)
         setFeedbackSent(false)
 
         try {
@@ -91,6 +94,22 @@ export default function DemoPage() {
             setError(err instanceof Error ? err.message : "Failed to get gender prediction")
         } finally {
             setGenderLoading(false)
+        }
+    }
+
+    const handleCensor = async () => {
+        if (!text.trim()) return
+        setCensorLoading(true)
+        setError(null)
+        setCensorResult(null)
+
+        try {
+            const data = await censorText(text, "*", selectedModel)
+            setCensorResult(data)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to censor text")
+        } finally {
+            setCensorLoading(false)
         }
     }
 
@@ -117,6 +136,7 @@ export default function DemoPage() {
         setText("")
         setResult(null)
         setGenderResult(null)
+        setCensorResult(null)
         setError(null)
         setFeedbackSent(false)
     }
@@ -271,8 +291,27 @@ export default function DemoPage() {
                             </div>
                             <div className="flex gap-3 w-full sm:w-auto">
                                 <Button
+                                    onClick={handleCensor}
+                                    disabled={loading || genderLoading || censorLoading || !text.trim()}
+                                    variant="outline"
+                                    size="lg"
+                                    className="px-6 h-12 border-primary/30 hover:bg-primary/10 rounded-2xl"
+                                >
+                                    {censorLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Censoring...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <EyeOff className="mr-2 h-5 w-5" />
+                                            Censor
+                                        </>
+                                    )}
+                                </Button>
+                                <Button
                                     onClick={handlePredict}
-                                    disabled={loading || genderLoading || !text.trim()}
+                                    disabled={loading || genderLoading || censorLoading || !text.trim()}
                                     size="lg"
                                     className="px-10 h-12 bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity font-semibold rounded-2xl"
                                 >
@@ -304,6 +343,57 @@ export default function DemoPage() {
                                 <div className="flex items-center gap-3">
                                     <AlertCircle className="h-5 w-5 text-destructive" />
                                     <span className="text-destructive text-sm font-medium">{error}</span>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Censored Text Display */}
+                    <AnimatePresence>
+                        {censorResult && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="glass-card rounded-2xl p-6 space-y-4 border-l-4 border-l-orange-500"
+                            >
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <h2 className="text-xl font-bold flex items-center gap-2">
+                                        <EyeOff className="h-5 w-5" />
+                                        Censored Text
+                                    </h2>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={censorResult.profanity_detected || censorResult.offensive_detected ? "destructive" : "default"} 
+                                               className={!(censorResult.profanity_detected || censorResult.offensive_detected) ? 'bg-green-500/20 text-green-400 border-green-500/30' : ''}>
+                                            {censorResult.censored_count > 0 ? `${censorResult.censored_count} word(s) censored` : "Clean"}
+                                        </Badge>
+                                        <Badge variant="outline" className="font-mono text-[10px] px-3 py-1">
+                                            {censorResult.latency_ms.toFixed(1)}ms
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="p-4 bg-muted/30 rounded-xl border border-border/30">
+                                        <p className="text-xs text-muted-foreground mb-2">Original:</p>
+                                        <p className="text-lg nepali-text">{censorResult.original}</p>
+                                    </div>
+                                    <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/30">
+                                        <p className="text-xs text-muted-foreground mb-2">Censored:</p>
+                                        <p className="text-lg font-bold nepali-text text-orange-400">{censorResult.censored}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 text-xs">
+                                    {censorResult.profanity_detected && (
+                                        <Badge variant="destructive" className="text-xs">Profanity Detected</Badge>
+                                    )}
+                                    {censorResult.offensive_detected && (
+                                        <Badge variant="destructive" className="text-xs">Offensive Content</Badge>
+                                    )}
+                                    {!censorResult.profanity_detected && !censorResult.offensive_detected && (
+                                        <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30">Clean Content</Badge>
+                                    )}
                                 </div>
                             </motion.div>
                         )}

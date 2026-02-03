@@ -8,9 +8,18 @@ frontend/build/
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
 backend/venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
 
 # Environment files
 .env
