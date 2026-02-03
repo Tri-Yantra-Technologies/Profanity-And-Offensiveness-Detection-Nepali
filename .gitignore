@@ -47,3 +47,7 @@ backend/artifacts/*.pkl
 # Misc
 .vercel
 *.tsbuildinfo
+backend/app/__pycache__/models.cpython-311.pyc
+/backend/app/__pycache__
+backend/app/__pycache__/models.cpython-311.pyc
+backend/app/__pycache__/rate_limit.cpython-311.pyc
