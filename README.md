@@ -1,6 +1,6 @@
 # NepSense - Profanity & Offensiveness Detection for Nepali Language 🇳🇵🛡️
 
-[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Not%20declared-lightgrey.svg)](#-license-status)
 [![Status](https://img.shields.io/badge/Status-ICON%202024%20Published-brightgreen.svg)](https://aclanthology.org/2024.icon-1.60)
 [![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/Tri-Yantra-Technologies/Profanity-And-Offensiveness-Detection-Nepali)
 
@@ -12,7 +12,7 @@
 
 ## 📄 Abstract
 
-**NepSense** is a pioneering NLP tool designed to detect **profanity**, **offensiveness**, and **speaker gender** in Nepali text. By synthesizing advanced Deep Learning with Nepali linguistic context, NepSense bridges the critical gap between users seeking safe online spaces and platforms needing content moderation.
+**NepSense** is a research implementation for detecting **profanity** and **offensiveness** in Nepali text. It also contains an experimental speaker-gender label predictor inherited from the published research scope; that output must not be treated as identity or used for consequential decisions.
 
 Offensive and profane content has been on the rise in Nepali Social Media, which is very disturbing to users. This is partly due to the absence of proper tools and mechanisms for the Nepali language to deal with profanity and offensive texts. In this work, we develop a **Bi-LSTM (Bidirectional Long Short Term Memory)** based model for the classification of Profane and Offensive comments.
 
@@ -29,22 +29,25 @@ Leveraging **Multilingual BERT embeddings** and custom vocabulary embeddings, Ne
 ### 1. 🛡️ Triple Detection System
 - **Profanity Detection**: Identifies vulgar, obscene, and swear words in Nepali text.
 - **Offensiveness Detection**: Detects disrespectful, insulting, or harmful content.
-- **Gender Identification**: Predicts the gender of the speaker based on text patterns.
+- **Experimental Gender Label**: Reproduces a research task based on text patterns; unsuitable for identity inference or consequential use.
 
 ### 2. 🔤 Hybrid Input Support
 - **Devanagari Script**: Native Nepali text (नेपाली)
 - **Romanized Nepali**: Latin script transliteration (Nepali → automatically converted)
 - **Automatic Transliteration**: AI4Bharat XlitEngine converts Romanized input to Devanagari
 
-### 3. 🧬 State-of-the-Art Architecture
+### 3. 🧬 Model Architecture
 - **Bi-LSTM Models**: Capture bidirectional context for accurate classification
 - **BERT Embeddings**: Multilingual BERT (`bert-base-multilingual-cased`) for semantic understanding
 - **Multi-Output Model**: Single model predicting both profanity levels and speaker gender
 
-### 4. ⚡ Production-Ready API
+### 4. ⚡ Research API
 - **FastAPI Backend**: High-performance async API with automatic docs
 - **Rate Limiting**: Prevent abuse with configurable request limits
 - **Feedback Loop**: Users can submit corrections to improve models
+
+> **Deployment status:** Public research implementation. Production safety,
+> robustness, bias, privacy, monitoring, and abuse resistance have not been audited.
 
 ### 5. 🎨 Premium Web Interface
 - **Three.js Animations**: Immersive 3D background effects
@@ -319,9 +322,18 @@ Ensure you lint your code and test thoroughly before submitting a PR.
 
 ---
 
-## 📝 License
+## ⚠️ Limitations and responsible use
 
-This project is licensed under the **MIT License** — free for personal, academic, and commercial use.
+- Profanity and offensiveness depend on context, dialect, community norms, and annotation policy.
+- Romanized-to-Devanagari transliteration can change meaning before classification.
+- Reported aggregate accuracy does not prove equal performance across demographic groups.
+- Automated moderation should include appeal, human review, and domain-specific evaluation.
+- Experimental gender prediction must not be used to infer identity or make access, employment, credit, safety, or legal decisions.
+
+## 📝 License status
+
+No repository-wide license file is currently present. Public visibility does not grant
+reuse rights. Model, dataset, and upstream dependency licenses must be checked separately.
 
 ---
 
